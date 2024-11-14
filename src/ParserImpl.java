@@ -16,43 +16,71 @@ public class ParserImpl extends Parser {
      * MulOp -> DIV                { $$ = $1; }
      */
     @Override
-public Expr do_parse() throws Exception {
-    return parseT();  // Begin parsing the expression from the top level (Term)
-}
-
-// Parses terms with addition or subtraction
-private Expr parseT() throws Exception {
-    Expr left = parseF();
-    while (peek(TokenType.PLUS, 0) || peek(TokenType.MINUS, 0)) {
-        Token op = consume(peek(TokenType.PLUS, 0) ? TokenType.PLUS : TokenType.MINUS);
-        Expr right = parseT();
-        left = (op.ty == TokenType.PLUS) ? new PlusExpr(left, right) : new MinusExpr(left, right);
+    public Expr do_parse() throws Exception {
+        // TODO Auto-generated method stub
+        //throw new UnsupportedOperationException("Unimplemented method 'do_parse'");
+        return parseT();
     }
-    return left;
-}
 
-// Parses factors with multiplication or division
-private Expr parseF() throws Exception {
-    Expr left = parsePrimary();
-    while (peek(TokenType.TIMES, 0) || peek(TokenType.DIV, 0)) {
-        Token op = consume(peek(TokenType.TIMES, 0) ? TokenType.TIMES : TokenType.DIV);
-        Expr right = parseF();
-        left = (op.ty == TokenType.TIMES) ? new TimesExpr(left, right) : new DivExpr(left, right);
+    // Recursive method to parse T
+    private Expr parseT() throws Exception {
+        Expr left = parseF();
+        if (peek(TokenType.PLUS, 0) || peek(TokenType.MINUS, 0)) {
+            Token op = consume(peek(TokenType.PLUS, 0) ? TokenType.PLUS : TokenType.MINUS);
+            Expr right = parseT();
+            if (op.ty == TokenType.PLUS) {
+                return new PlusExpr(left, right);
+            } else {
+                return new MinusExpr(left, right);
+            }
+        }
+        return left;
     }
-    return left;
-}
 
-// Parses literals or parenthesized expressions
-private Expr parsePrimary() throws Exception {
-    if (peek(TokenType.NUM, 0)) {
-        Token num = consume(TokenType.NUM);
-        return new FloatExpr(Float.parseFloat(num.lexeme));
-    } else if (peek(TokenType.LPAREN, 0)) {
-        consume(TokenType.LPAREN); // consume '('
-        Expr expr = parseT();
-        consume(TokenType.RPAREN); // consume ')'
-        return expr;
-    } else {
-        throw new ParseException("Expected a number or '('");
+    // Recursive method to parse F
+    private Expr parseF() throws Exception {
+        Expr left = parseLit();
+        if (peek(TokenType.TIMES, 0) || peek(TokenType.DIV, 0)) {
+            Token op = consume(peek(TokenType.TIMES, 0) ? TokenType.TIMES : TokenType.DIV);
+            Expr right = parseF();
+            if (op.ty == TokenType.TIMES) {
+                return new TimesExpr(left, right);
+            } else {
+                return new DivExpr(left, right);
+            }
+        }
+        return left;
     }
+
+    // Method to parse Lit
+    private Expr parseLit() throws Exception {
+        if (peek(TokenType.NUM, 0)) {
+            Token num = consume(TokenType.NUM);
+            return new FloatExpr(Float.parseFloat(num.lexeme));
+        } else if (peek(TokenType.LPAREN, 0)) {
+            consume(TokenType.LPAREN); // consume '('
+            Expr expr = parseT();
+            consume(TokenType.RPAREN); // consume ')'
+            return expr;
+        } else {
+            throw new RuntimeException("Expected number or '('");
+        }
+    }
+
+    // Method to handle AddOp (not really used due to inline handling in parseT)
+    private Token parseAddOp() throws Exception {
+        if (peek(TokenType.PLUS, 0) || peek(TokenType.MINUS, 0)) {
+            return consume(peek(TokenType.PLUS, 0) ? TokenType.PLUS : TokenType.MINUS);
+        }
+        throw new RuntimeException("Expected '+' or '-'");
+    }
+
+    // Method to handle MulOp (not really used due to inline handling in parseF)
+    private Token parseMulOp() throws Exception {
+        if (peek(TokenType.TIMES, 0) || peek(TokenType.DIV, 0)) {
+            return consume(peek(TokenType.TIMES, 0) ? TokenType.TIMES : TokenType.DIV);
+        }
+        throw new RuntimeException("Expected '*' or '/'");
+    }
+
 }
