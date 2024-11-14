@@ -40,17 +40,19 @@ public class AutomatonImpl implements Automaton {
 
     @Override
     public void addState(int s, boolean is_start, boolean is_accept) {
-        if (is_start) { start_states.add(s);}
-        if (is_accept) { accept_states.add(s); }
-        
+        if (is_start) {
+            start_states.add(s);
+        }
+        if (is_accept) {
+            accept_states.add(s);
+        }
+        // Ensure that every state has an entry in the transitions map.
         transitions.putIfAbsent(new StateLabelPair(s, '\0'), new HashSet<>()); // Use '\0' (null char) to initialize.
     }
 
     @Override
     public void addTransition(int s_initial, char label, int s_final) {
-        // Create a key using the initial state and label
         StateLabelPair key = new StateLabelPair(s_initial, label);
-
         transitions.computeIfAbsent(key, k -> new HashSet<>()).add(s_final);
     }
 
@@ -62,19 +64,15 @@ public class AutomatonImpl implements Automaton {
 
     @Override
     public void apply(char input) {
-      HashSet<Integer> nextStates = new HashSet<>();
-
-    // Process each current state and find the next states based on the input
-    for (int currentState : current_states) {
-        StateLabelPair key = new StateLabelPair(currentState, input);
-        if (transitions.containsKey(key)) {
-            nextStates.addAll(transitions.get(key)); // Add all possible transitions for this state and input
+        HashSet<Integer> nextStates = new HashSet<>();
+        for (int currentState : current_states) {
+            StateLabelPair key = new StateLabelPair(currentState, input);
+            if (transitions.containsKey(key)) {
+                nextStates.addAll(transitions.get(key));
+            }
         }
+        current_states = nextStates;
     }
-
-    // Update the current states to the newly computed next states
-    current_states = nextStates;
-
 
     @Override
     public boolean accepts() {
